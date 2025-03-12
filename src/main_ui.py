@@ -18,8 +18,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QHeaderView,
     QLabel, QLineEdit, QMainWindow, QMenu,
-    QMenuBar, QPushButton, QSizePolicy, QStatusBar,
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
+    QMenuBar, QPushButton, QRadioButton, QSizePolicy,
+    QStatusBar, QTableWidget, QTableWidgetItem, QVBoxLayout,
+    QWidget)
 import resources_rc
 
 class Ui_MainWindow(object):
@@ -67,6 +68,11 @@ class Ui_MainWindow(object):
         self.line_mongo_collection.setObjectName(u"line_mongo_collection")
 
         self.horizontalLayout_4.addWidget(self.line_mongo_collection)
+
+        self.radio_on_mongo_cloud = QRadioButton(self.groupBox_3)
+        self.radio_on_mongo_cloud.setObjectName(u"radio_on_mongo_cloud")
+
+        self.horizontalLayout_4.addWidget(self.radio_on_mongo_cloud)
 
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_4)
@@ -248,6 +254,10 @@ class Ui_MainWindow(object):
         self.line_mongo_collection.setStatusTip(QCoreApplication.translate("MainWindow", u"Enter the collection name, a new collection will be created automatically (if needed)", None))
 #endif // QT_CONFIG(statustip)
         self.line_mongo_collection.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Collection", None))
+#if QT_CONFIG(statustip)
+        self.radio_on_mongo_cloud.setStatusTip(QCoreApplication.translate("MainWindow", u"Will connect to MongoDB Cloud if checked", None))
+#endif // QT_CONFIG(statustip)
+        self.radio_on_mongo_cloud.setText(QCoreApplication.translate("MainWindow", u"MongoDB Cloud", None))
 #if QT_CONFIG(statustip)
         self.line_mongo_username.setStatusTip(QCoreApplication.translate("MainWindow", u"Enter the MongoDB user", None))
 #endif // QT_CONFIG(statustip)

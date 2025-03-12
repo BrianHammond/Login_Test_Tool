@@ -45,10 +45,16 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         # Registered Users
         self.user_search = self.line_user_search
 
+        # Radio Buttons
+        self.on_mongo_cloud = self.radio_on_mongo_cloud
+
         # menubar
         self.action_dark_mode.toggled.connect(self.dark_mode)
         self.action_about.triggered.connect(self.show_about)
         self.action_about_qt.triggered.connect(self.about_qt)
+
+
+
 
     def connect_to_mongo(self):
         mongo_url = self.mongo_url.text()
@@ -61,7 +67,13 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
             QMessageBox.warning(self, "Input Error", "Please fill in all fields: Server URL, Username, Password, and Database.")
             return
 
-        self.mongo_db = MongoDB(mongo_url=mongo_url, mongo_username=mongo_username, mongo_password=mongo_password, mongo_database=mongo_database, mongo_collection=mongo_collection)
+        self.mongo_db = MongoDB(
+            mongo_url=mongo_url, 
+            mongo_username=mongo_username, 
+            mongo_password=mongo_password, 
+            mongo_database=mongo_database, 
+            mongo_collection=mongo_collection,
+            parent=self)
         self.mongo_db.connect()
 
         self.mongo_query()
@@ -261,8 +273,9 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.settings_manager.save_settings()
         event.accept()
 
+
 class MongoDB:
-    def __init__(self, mongo_url=None, port=27017, mongo_username=None, mongo_password=None, mongo_database=None, mongo_collection=None):
+    def __init__(self, mongo_url=None, port=27017, mongo_username=None, mongo_password=None, mongo_database=None, mongo_collection=None, parent=None):
         self.mongo_url = mongo_url
         self.port = port
         self.mongo_username = mongo_username
@@ -271,33 +284,36 @@ class MongoDB:
         self.mongo_collection = mongo_collection
         self.client = None
         self.db = None
-        self.is_connected = False # Set to True on successful connection
+        self.is_connected = False
+        self.parent = parent  # Add reference to parent window to access radio button
 
     def connect(self):
         try:
-            # Attempt to connect to the MongoDB cluster
-            uri = f"mongodb+srv://{self.mongo_username}:{self.mongo_password}@{self.mongo_url}/?retryWrites=true&w=majority&appName={self.mongo_username}"
-            self.client = MongoClient(uri, server_api=ServerApi('1'))
-            
+            # Check radio button state and use appropriate URI
+            if self.parent and self.parent.on_mongo_cloud.isChecked():
+                # MongoDB Atlas (Cloud) connection
+                uri = f"mongodb+srv://{self.mongo_username}:{self.mongo_password}@{self.mongo_url}/?retryWrites=true&w=majority&appName={self.mongo_username}"
+                self.client = MongoClient(uri, server_api=ServerApi('1'))
+            else:
+                # Local MongoDB connection
+                uri = f"mongodb://{self.mongo_username}:{self.mongo_password}@{self.mongo_url}:{self.port}/"
+                self.client = MongoClient(uri)
+
             # Check if the database exists by listing databases
             db_list = self.client.list_database_names()
-            self.db = self.client[self.mongo_database]  # Set the database reference
+            self.db = self.client[self.mongo_database]
             
             if self.mongo_database not in db_list:
-                # Database doesn't exist: create it and the collection
                 print(f"Database '{self.mongo_database}' not found. Creating it...")
                 self.db.create_collection(self.mongo_collection)
                 print(f"Database '{self.mongo_database}' and empty collection '{self.mongo_collection}' created successfully.")
             else:
-                # Database exists: check if the collection exists
                 collection_list = self.db.list_collection_names()
                 if self.mongo_collection not in collection_list:
-                    # Collection doesn't exist: create it
                     print(f"Collection '{self.mongo_collection}' not found in '{self.mongo_database}'. Creating it...")
                     self.db.create_collection(self.mongo_collection)
                     print(f"Empty collection '{self.mongo_collection}' created in existing database '{self.mongo_database}'.")
                 else:
-                    # Both database and collection exist: use them
                     print(f"Connected to existing database '{self.mongo_database}' and collection '{self.mongo_collection}'.")
 
             # Test connection with a ping
@@ -314,6 +330,8 @@ class MongoDB:
         except Exception as e:
             self.is_connected = False
             QMessageBox.critical(None, "Connection Error", f"Error connecting to MongoDB: {e}")
+
+
 
 class SettingsManager: # used to load and save settings when opening and closing the app
     def __init__(self, main_window):
