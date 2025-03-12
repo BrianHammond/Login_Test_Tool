@@ -53,9 +53,6 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.action_about.triggered.connect(self.show_about)
         self.action_about_qt.triggered.connect(self.about_qt)
 
-
-
-
     def connect_to_mongo(self):
         mongo_url = self.mongo_url.text()
         mongo_database = self.mongo_database.text()
@@ -273,7 +270,6 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.settings_manager.save_settings()
         event.accept()
 
-
 class MongoDB:
     def __init__(self, mongo_url=None, port=27017, mongo_username=None, mongo_password=None, mongo_database=None, mongo_collection=None, parent=None):
         self.mongo_url = mongo_url
@@ -331,8 +327,6 @@ class MongoDB:
             self.is_connected = False
             QMessageBox.critical(None, "Connection Error", f"Error connecting to MongoDB: {e}")
 
-
-
 class SettingsManager: # used to load and save settings when opening and closing the app
     def __init__(self, main_window):
         self.main_window = main_window
@@ -362,11 +356,12 @@ class SettingsManager: # used to load and save settings when opening and closing
         pos = self.settings.value('window_pos', None)
         dark = self.settings.value('dark_mode')
         mongo_url = self.settings.value('mongo_url')
+        on_mongo_cloud = self.settings.value('on_mongo_cloud')
         mongo_database = self.settings.value('mongo_database')
         mongo_collection = self.settings.value('mongo_collection')
         mongo_username = self.settings.value('mongo_username')
         encrypted_mongo_password = self.settings.value('mongo_password')
-        
+
         if size is not None:
             self.main_window.resize(size)
         if pos is not None:
@@ -376,6 +371,8 @@ class SettingsManager: # used to load and save settings when opening and closing
             self.main_window.setStyleSheet(qdarkstyle.load_stylesheet_pyside6())
         if mongo_url is not None:
             self.main_window.line_mongo_url.setText(mongo_url)
+        if on_mongo_cloud == 'true':
+            self.main_window.radio_on_mongo_cloud.setChecked(True)
         if mongo_database is not None:
             self.main_window.line_mongo_database.setText(mongo_database)
         if mongo_collection is not None:
@@ -399,6 +396,7 @@ class SettingsManager: # used to load and save settings when opening and closing
         self.settings.setValue('mongo_username', self.main_window.line_mongo_username.text())
         mongo_password = self.main_window.line_mongo_password.text()
         self.settings.setValue('mongo_password', self.encrypt_text(mongo_password))
+        self.settings.setValue('on_mongo_cloud', self.main_window.radio_on_mongo_cloud.isChecked())
 
 class AboutWindow(QWidget, about_ui):
     def __init__(self, dark_mode=False):
