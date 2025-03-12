@@ -22,7 +22,7 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         # QPushButton
         self.button_db_connect.clicked.connect(self.connect_to_mongo)
         self.button_user_connect.clicked.connect(self.hello_world)
-        self.button_add.clicked.connect(self.add_new_user)
+        self.button_add.clicked.connect(self.register_new_user)
         self.button_search.clicked.connect(self.search_for_user)
         self.button_delete.clicked.connect(self.delete_user)
 
@@ -38,7 +38,7 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.username = self.line_username
         self.password = self.line_password
 
-        # Add User
+        # Register a new user
         self.add_user = self.line_add_user
         self.add_password = self.line_add_password
 
@@ -99,7 +99,7 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
-    def add_new_user(self): # Add new user to the database
+    def register_new_user(self): # Add new user to the database
         new_user = self.add_user.text()
         new_password = self.add_password.text()
         mongo_collection = self.mongo_collection.text()
@@ -107,7 +107,23 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         if any(not field for field in [new_user, new_password]):
             QMessageBox.warning(self, "Input Error", "New user and new password cannot be blank")
             return
-
+        
+        # Check if new_user contains '@' symbol
+        if '@' not in new_user:
+            QMessageBox.warning(self, "Input Error", "Username must contain a valid email")
+            return
+        
+        # Check if user already exists in database
+        if self.mongo_db.is_connected:
+            collection = self.mongo_db.db[mongo_collection]
+            existing_user = collection.find_one({"username": new_user})
+            if existing_user:
+                QMessageBox.warning(self, "User Error", f"User '{new_user}' already exists in the database")
+                return
+        else:
+            QMessageBox.critical(self, "Connection Error", "Not connected to MongoDB")
+            return
+        
         # Hash the password with bcrypt
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), salt).decode('utf-8')
