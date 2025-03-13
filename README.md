@@ -9,7 +9,7 @@ UI created in Qt Designer
 
 Click on run.bat to run the program, the bat file will all required dependencies.
 
-Tested with [MongoDB Cloud](https://account.mongodb.com/account/login) and MongoDB on Docker.
+Tested with [MongoDB Cloud](https://account.mongodb.com/account/login) and MongoDB on docker, radio button lets you select between the two.
 
 Best Regards,<br/>
 Brian

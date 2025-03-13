@@ -33,6 +33,7 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.mongo_collection = self.line_mongo_collection
         self.mongo_username = self.line_mongo_username
         self.mongo_password = self.line_mongo_password
+        self.mongo_cluster = self.line_mongo_cluster
 
         # Registered User Login
         self.username = self.line_username
@@ -46,12 +47,15 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.user_search = self.line_user_search
 
         # Radio Buttons
-        self.on_mongo_cloud = self.radio_on_mongo_cloud
+        self.radio_on_mongo_cloud.toggled.connect(self.toggle_mongo_cluster)
 
         # menubar
         self.action_dark_mode.toggled.connect(self.dark_mode)
         self.action_about.triggered.connect(self.show_about)
         self.action_about_qt.triggered.connect(self.about_qt)
+
+    def toggle_mongo_cluster(self,checked):
+        self.mongo_cluster.setEnabled(checked)
 
     def connect_to_mongo(self):
         mongo_url = self.mongo_url.text()
@@ -59,6 +63,7 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         mongo_collection = self.mongo_collection.text()
         mongo_username = self.mongo_username.text()
         mongo_password = self.mongo_password.text()
+        cluster = self.line_mongo_cluster.text()
         
         if any(not field for field in [mongo_url, mongo_username, mongo_password, mongo_database]):
             QMessageBox.warning(self, "Input Error", "Please fill in all fields: Server URL, Username, Password, and Database.")
@@ -70,6 +75,7 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
             mongo_password=mongo_password, 
             mongo_database=mongo_database, 
             mongo_collection=mongo_collection,
+            cluster=cluster,
             parent=self)
         self.mongo_db.connect()
 
@@ -262,13 +268,14 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         event.accept()
 
 class MongoDB:
-    def __init__(self, mongo_url=None, port=27017, mongo_username=None, mongo_password=None, mongo_database=None, mongo_collection=None, parent=None):
+    def __init__(self, mongo_url=None, port=27017, mongo_username=None, mongo_password=None, mongo_database=None, mongo_collection=None, cluster=None, parent=None):
         self.mongo_url = mongo_url
         self.port = port
         self.mongo_username = mongo_username
         self.mongo_password = mongo_password
         self.mongo_database = mongo_database
         self.mongo_collection = mongo_collection
+        self.cluster = cluster
         self.client = None
         self.db = None
         self.is_connected = False
@@ -277,9 +284,9 @@ class MongoDB:
     def connect(self):
         try:
             # Check radio button state and use appropriate URI
-            if self.parent and self.parent.on_mongo_cloud.isChecked():
+            if self.parent and self.parent.radio_on_mongo_cloud.isChecked():
                 # MongoDB Atlas (Cloud) connection
-                uri = f"mongodb+srv://{self.mongo_username}:{self.mongo_password}@{self.mongo_url}/?retryWrites=true&w=majority&appName={self.mongo_username}"
+                uri = f"mongodb+srv://{self.mongo_username}:{self.mongo_password}@{self.mongo_url}/?retryWrites=true&w=majority&appName={self.cluster}"
                 self.client = MongoClient(uri, server_api=ServerApi('1'))
             else:
                 # Local MongoDB connection
@@ -359,6 +366,7 @@ class SettingsManager: # used to load and save settings when opening and closing
         mongo_collection = self.settings.value('mongo_collection')
         mongo_username = self.settings.value('mongo_username')
         encrypted_mongo_password = self.settings.value('mongo_password')
+        mongo_cluster = self.settings.value('mongo_cluster')
 
         if size is not None:
             self.main_window.resize(size)
@@ -371,6 +379,9 @@ class SettingsManager: # used to load and save settings when opening and closing
             self.main_window.line_mongo_url.setText(mongo_url)
         if on_mongo_cloud == 'true':
             self.main_window.radio_on_mongo_cloud.setChecked(True)
+            self.main_window.line_mongo_cluster.setEnabled(True)
+        if mongo_cluster is not None:
+            self.main_window.line_mongo_cluster.setText(mongo_cluster)
         if mongo_database is not None:
             self.main_window.line_mongo_database.setText(mongo_database)
         if mongo_collection is not None:
@@ -395,6 +406,7 @@ class SettingsManager: # used to load and save settings when opening and closing
         mongo_password = self.main_window.line_mongo_password.text()
         self.settings.setValue('mongo_password', self.encrypt_text(mongo_password))
         self.settings.setValue('on_mongo_cloud', self.main_window.radio_on_mongo_cloud.isChecked())
+        self.settings.setValue('mongo_cluster', self.main_window.line_mongo_cluster.text())
 
 class AboutWindow(QWidget, about_ui):
     def __init__(self, dark_mode=False):
