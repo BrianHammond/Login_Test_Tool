@@ -75,15 +75,6 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
 
         self.mongo_query()
 
-        # Update the connection status label
-        self.update_connection_status()
-
-    def update_connection_status(self):
-        if self.mongo_db.is_connected:
-            self.label_connection.setText("Connected to MongoDB")
-        else:
-            self.label_connection.setText("Failed to connect to MongoDB")
-
     def hello_world(self):
         input_username = self.username.text()
         input_password = self.password.text()
@@ -298,11 +289,20 @@ class MongoDB:
             # Check if the database exists by listing databases
             db_list = self.client.list_database_names()
             self.db = self.client[self.mongo_database]
+
+            self.client.admin.command('ping')
+            self.is_connected = True
+
+            if self.parent:
+                self.parent.label_connection.setText("Connected to MongoDB")
+            print("Ping to MongoDB server successful")
+            QMessageBox.information(None, "MongoDB", f"Successfully connected {self.mongo_url}")
             
             if self.mongo_database not in db_list:
                 print(f"Database '{self.mongo_database}' not found. Creating it...")
                 self.db.create_collection(self.mongo_collection)
                 print(f"Database '{self.mongo_database}' and empty collection '{self.mongo_collection}' created successfully.")
+
             else:
                 collection_list = self.db.list_collection_names()
                 if self.mongo_collection not in collection_list:
@@ -312,19 +312,17 @@ class MongoDB:
                 else:
                     print(f"Connected to existing database '{self.mongo_database}' and collection '{self.mongo_collection}'.")
 
-            # Test connection with a ping
-            self.client.admin.command('ping')
-            self.is_connected = True
-            QMessageBox.information(None, "Success", f"Connected to MongoDB database '{self.mongo_database}' with collection '{self.mongo_collection}'")
-
         except pymongo.errors.OperationFailure as e:
-            self.is_connected = False
+            if self.parent:
+                self.parent.label_connection.setText("Failed to connected to MongoDB")
             QMessageBox.critical(None, "FAILED TO CONNECT", "Authentication failed. Please check your credentials.")
         except pymongo.errors.ServerSelectionTimeoutError as e:
-            self.is_connected = False
+            if self.parent:
+                self.parent.label_connection.setText("Failed to connect to MongoDB")
             QMessageBox.critical(None, "Connection Error", f"Could not connect to MongoDB server: {e}")
         except Exception as e:
-            self.is_connected = False
+            if self.parent:
+                self.parent.label_connection.setText("Failed to connect to MongoDB")
             QMessageBox.critical(None, "Connection Error", f"Error connecting to MongoDB: {e}")
 
 class SettingsManager: # used to load and save settings when opening and closing the app
