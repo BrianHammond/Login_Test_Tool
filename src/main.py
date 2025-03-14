@@ -26,26 +26,6 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.button_search.clicked.connect(self.search_for_user)
         self.button_delete.clicked.connect(self.delete_user)
 
-        # QLineEdit
-        # Connect to Database
-        self.mongo_url = self.line_mongo_url   
-        self.mongo_database = self.line_mongo_database
-        self.mongo_collection = self.line_mongo_collection
-        self.mongo_username = self.line_mongo_username
-        self.mongo_password = self.line_mongo_password
-        self.mongo_cluster = self.line_mongo_cluster
-
-        # Registered User Login
-        self.username = self.line_username
-        self.password = self.line_password
-
-        # Register a new user
-        self.add_user = self.line_add_user
-        self.add_password = self.line_add_password
-
-        # Registered Users
-        self.user_search = self.line_user_search
-
         # Radio Buttons
         self.radio_on_mongo_cloud.toggled.connect(self.toggle_mongo_cluster)
 
@@ -55,15 +35,15 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.action_about_qt.triggered.connect(self.about_qt)
 
     def toggle_mongo_cluster(self,checked):
-        self.mongo_cluster.setEnabled(checked)
+        self.line_mongo_cluster.setEnabled(checked)
 
     def connect_to_mongo(self):
-        mongo_url = self.mongo_url.text()
-        mongo_database = self.mongo_database.text()
-        mongo_collection = self.mongo_collection.text()
-        mongo_username = self.mongo_username.text()
-        mongo_password = self.mongo_password.text()
-        cluster = self.line_mongo_cluster.text()
+        mongo_url = self.line_mongo_url.text().strip()
+        mongo_database = self.line_mongo_database.text().strip()
+        mongo_collection = self.line_mongo_collection.text().strip()
+        mongo_username = self.line_mongo_username.text().strip()
+        mongo_password = self.line_mongo_password.text().strip()
+        cluster = self.line_mongo_cluster.text().strip()
         
         if any(not field for field in [mongo_url, mongo_username, mongo_password, mongo_database]):
             QMessageBox.warning(self, "Input Error", "Please fill in all fields: Server URL, Username, Password, and Database.")
@@ -82,9 +62,9 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.mongo_query()
 
     def hello_world(self):
-        input_username = self.username.text()
-        input_password = self.password.text()
-        mongo_collection = self.mongo_collection.text()
+        input_username = self.line_username.text().strip()
+        input_password = self.line_password.text().strip()
+        mongo_collection = self.line_mongo_collection.text().strip()
 
         # Check if MongoDB is connected
         if not self.mongo_db.is_connected:
@@ -106,9 +86,9 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
             QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
     def register_new_user(self): # Add new user to the database
-        new_user = self.add_user.text()
-        new_password = self.add_password.text()
-        mongo_collection = self.mongo_collection.text()
+        new_user = self.line_add_user.text().strip()
+        new_password = self.line_add_password.text().strip()
+        mongo_collection = self.line_mongo_collection.text().strip()
 
         if any(not field for field in [new_user, new_password]):
             QMessageBox.warning(self, "Input Error", "New user and new password cannot be blank")
@@ -146,8 +126,8 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.mongo_query()
 
     def search_for_user(self): # Search the database for user
-        mongo_collection = self.mongo_collection.text()
-        username_search = self.user_search.text()
+        mongo_collection = self.line_mongo_collection.text().strip()
+        username_search = self.line_user_search.text().strip()
         query = {}
         if username_search:
             query["username"] = username_search
@@ -172,7 +152,7 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
             print("MongoDB is not connected. Cannot query data.")
 
     def delete_user(self):
-        mongo_collection = self.mongo_collection.text()
+        mongo_collection = self.line_mongo_collection.text().strip()
 
         # Get the selected rows from the table
         selected_rows = self.table.selectedIndexes()
@@ -210,11 +190,11 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
             print("No documents found to delete in MongoDB")
 
     def clear_fields(self):
-        self.add_user.clear()
-        self.add_password.clear()
+        self.line_add_user.clear()
+        self.line_add_password.clear()
 
     def mongo_query(self):
-        mongo_collection = self.mongo_collection.text()
+        mongo_collection = self.line_mongo_collection.text().strip()
         self.initialize_table()
 
         if self.mongo_db.is_connected:
