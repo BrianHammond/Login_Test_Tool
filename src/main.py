@@ -3,10 +3,10 @@ import qdarkstyle
 import pymongo
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox, QTableWidget, QTableWidgetItem
+from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QTableWidget, QTableWidgetItem
 from PySide6.QtCore import QSettings
 from main_ui import Ui_MainWindow as main_ui
-from about_ui import Ui_Form as about_ui
+from about_ui import Ui_Dialog as about_ui
 from cryptography.fernet import Fernet
 import bcrypt
 
@@ -51,7 +51,7 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
 
         # menubar
         self.action_dark_mode.toggled.connect(self.dark_mode)
-        self.action_about.triggered.connect(self.show_about)
+        self.action_about.triggered.connect(self.about_window)
         self.action_about_qt.triggered.connect(self.about_qt)
 
     def toggle_mongo_cluster(self,checked):
@@ -256,9 +256,9 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         else:
             self.setStyleSheet('')
 
-    def show_about(self): # loads the About window
-        self.about_window = AboutWindow(dark_mode=self.action_dark_mode.isChecked())
-        self.about_window.show()
+    def about_window(self): # loads the About window
+        about_window = AboutWindow(dark_mode=self.action_dark_mode.isChecked())
+        about_window.exec()
 
     def about_qt(self): # loads the About Qt window
         QApplication.aboutQt()
@@ -408,12 +408,13 @@ class SettingsManager: # used to load and save settings when opening and closing
         self.settings.setValue('on_mongo_cloud', self.main_window.radio_on_mongo_cloud.isChecked())
         self.settings.setValue('mongo_cluster', self.main_window.line_mongo_cluster.text())
 
-class AboutWindow(QWidget, about_ui):
+class AboutWindow(QDialog, about_ui): 
     def __init__(self, dark_mode=False):
         super().__init__()
         self.setupUi(self)
         if dark_mode:
             self.setStyleSheet(qdarkstyle.load_stylesheet_pyside6())
+        self.button_ok.clicked.connect(self.accept)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
