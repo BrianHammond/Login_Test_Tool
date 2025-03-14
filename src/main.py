@@ -62,8 +62,8 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         self.mongo_query()
 
     def hello_world(self):
-        input_username = self.line_username.text().strip()
-        input_password = self.line_password.text().strip()
+        username = self.line_username.text().strip()
+        password = self.line_password.text().strip()
         mongo_collection = self.line_mongo_collection.text().strip()
 
         # Check if MongoDB is connected
@@ -74,11 +74,10 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
         # Query the collection for matching username and password
         try:
             collection = self.mongo_db.db[mongo_collection]
-            user = collection.find_one({"username": input_username})
+            user = collection.find_one({"username": username})
             
-            if user and bcrypt.checkpw(input_password.encode('utf-8'), user["password"].encode('utf-8')):
-                print("Hello World")
-                QMessageBox.information(self, "Success", "Hello World - Login Successful!")
+            if user and bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
+                QMessageBox.information(self, "Success", f"Hello {username} - Login Successful!")
             else:
                 QMessageBox.warning(self, "Login Failed", "Invalid username or password")
                 
@@ -86,8 +85,8 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
             QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
 
     def register_new_user(self): # Add new user to the database
-        new_user = self.line_add_user.text().strip()
-        new_password = self.line_add_password.text().strip()
+        new_user = self.line_new_user.text().strip()
+        new_password = self.line_new_password.text().strip()
         mongo_collection = self.line_mongo_collection.text().strip()
 
         if any(not field for field in [new_user, new_password]):
@@ -190,8 +189,8 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
             print("No documents found to delete in MongoDB")
 
     def clear_fields(self):
-        self.line_add_user.clear()
-        self.line_add_password.clear()
+        self.line_new_user.clear()
+        self.line_new_password.clear()
 
     def mongo_query(self):
         mongo_collection = self.line_mongo_collection.text().strip()
