@@ -31,8 +31,8 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
 
         # menubar
         self.action_dark_mode.toggled.connect(self.dark_mode)
-        self.action_about.triggered.connect(self.about_window)
-        self.action_about_qt.triggered.connect(self.about_qt)
+        self.action_about.triggered.connect(lambda: AboutWindow(dark_mode=self.action_dark_mode.isChecked()).exec())
+        self.action_about_qt.triggered.connect(lambda: QApplication.aboutQt())
 
     def toggle_mongo_cluster(self,checked):
         self.line_mongo_cluster.setEnabled(checked)
@@ -234,13 +234,6 @@ class MainWindow(QMainWindow, main_ui): # used to display the main user interfac
             self.setStyleSheet(qdarkstyle.load_stylesheet_pyside6())
         else:
             self.setStyleSheet('')
-
-    def about_window(self): # loads the About window
-        about_window = AboutWindow(dark_mode=self.action_dark_mode.isChecked())
-        about_window.exec()
-
-    def about_qt(self): # loads the About Qt window
-        QApplication.aboutQt()
 
     def closeEvent(self, event): # Save settings when closing the app
         self.settings_manager.save_settings()
